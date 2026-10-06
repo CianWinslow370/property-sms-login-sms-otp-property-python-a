@@ -1,0 +1,10 @@
+[project]
+name = "property-sms-login"
+version = "0.1.0"
+description = "A typed property login flow with SMS verification"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
