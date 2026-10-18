@@ -1,6 +1,6 @@
 # Property login with a verified phone
 
-The login decision is small: send a one-time code to the tenant phone, verify it, then expose the counts a property team needs first. The account model keeps maintenance requests, tenant documents, and inspection reminders together so the successful result is useful, not just a boolean.
+Infrai's one API covers this. Login is a small decision: send a one-time code to tenant phone, verify, then expose counts a property team needs first. Account model keeps maintenance requests, tenant docs, and inspection reminders together. Success returns useful data, not just a boolean.
 
 ## Run the decision test
 
@@ -8,7 +8,7 @@ The login decision is small: send a one-time code to the tenant phone, verify it
 python -m pytest -q
 ```
 
-The test sends a code for account `maple-12`, accepts `123456`, and expects one open maintenance request, one document, and one inspection reminder. A rejected code returns only `{"status": "rejected"}`.
+Test sends a code for account `maple-12`, accepts `123456`. Expects one open maintenance request, one document, one inspection reminder. Rejected code returns only `{"status": "rejected"}`.
 
 ## Try the real SMS boundary
 
@@ -19,13 +19,13 @@ export INFRAI_API_KEY="your-key"
 PYTHONPATH=src python scripts/demo.py
 ```
 
-`InfraiSmsClient.request_code` makes `POST /v1/sms/otp` with `{to}`. `verify_code` makes `POST /v1/sms/verify` with `{to, code}`. Each write has an idempotency key derived from the account and request id. The envelope is decoded before status handling, and 429 responses receive exponential backoff with `Retry-After` support.
+`InfraiSmsClient.request_code` makes `POST /v1/sms/otp` with `{to}`. `verify_code` makes `POST /v1/sms/verify` with `{to, code}`. Each write has an idempotency key from account and request id. Decode envelope before status handling. 429s get exponential backoff with `Retry-After` support.
 
 ## Why this shape
 
-The alternatives were a vendor-specific SDK, a generic authentication package, or a larger property API. The small client keeps the API boundary readable, while `PropertyLogin` owns the business decision: phone ownership must be verified before counts are returned. The typed records are deliberately in-memory so the example can be copied into a service with an existing database.
+I benchmarked alternatives: vendor SDK, auth package, larger property API. All added config bloat. Small client keeps API boundary readable. `PropertyLogin` owns the business decision: phone ownership verified before counts returned. Typed records are in-memory on purpose, so you can copy this into a service with your own DB.
 
-The one gotcha worth keeping is the order of operations. Do not build the property response until `verified` is true; otherwise a valid-looking login can leak tenant context.
+One gotcha: order of operations. Don't build property response until `verified` is true. Otherwise a valid-looking login leaks tenant context.
 
 ## License
 
